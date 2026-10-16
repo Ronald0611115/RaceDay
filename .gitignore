@@ -1,1 +1,14 @@
+﻿# Build output
+bin/
+obj/
 
+# Visual Studio files
+.vs/
+*.user
+*.suo
+
+# Local configuration and secrets
+appsettings.Development.json
+
+# Temporary backup of the old GitHub placeholder
+.github-backup
