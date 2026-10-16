@@ -24,8 +24,15 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
   </ItemGroup>
 
-<ItemGroup>
-  <Compile Remove="RaceDay.API.Tests\**\*.cs" />
-</ItemGroup>
+   <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);RaceDay.API.Tests\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="RaceDay.API.Tests\**\*.cs" />
+    <Content Remove="RaceDay.API.Tests\**" />
+    <None Remove="RaceDay.API.Tests\**" />
+    <EmbeddedResource Remove="RaceDay.API.Tests\**" />
+  </ItemGroup>
 
 </Project>
