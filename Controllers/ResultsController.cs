@@ -1,3 +1,4 @@
+﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ namespace RaceDay.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ResultsController : ControllerBase
     {
         private readonly RaceDayContext _context;
@@ -18,21 +20,12 @@ namespace RaceDay.API.Controllers
             _context = context;
         }
 
-        private bool TryGetUserId(out int userId)
-        {
-            return int.TryParse(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                out userId);
-        }
-
-        [Authorize(Roles = "Organiser")]
+        // POST: api/results/enrolment/1
         [HttpPost("enrolment/{enrolmentId}")]
-        public async Task<IActionResult> RecordResult(
+        [Authorize(Roles = "Organiser")]
+        public async Task<ActionResult<Result>> RecordResult(
             int enrolmentId, ResultRequest request)
         {
-            if (!TryGetUserId(out var organiserId))
-                return Unauthorized();
-
             if (request.FinishTime <= TimeSpan.Zero)
                 return BadRequest("Finish time must be greater than zero.");
 
@@ -41,9 +34,6 @@ namespace RaceDay.API.Controllers
 
             if (enrolment == null)
                 return NotFound("Enrolment not found.");
-
-            if (enrolment.Status == "Cancelled")
-                return Conflict("Cannot record a result for a cancelled enrolment.");
 
             var category = await _context.Categories
                 .FirstOrDefaultAsync(c => c.CategoryId == enrolment.CategoryId);
@@ -57,21 +47,29 @@ namespace RaceDay.API.Controllers
             if (eventItem == null)
                 return Conflict("The category's event could not be found.");
 
+            if (!int.TryParse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                out var organiserId))
+                return Unauthorized();
+
             if (eventItem.OrganiserId != organiserId)
                 return Forbid();
 
-            var existingResult = await _context.Results
+            if (eventItem.IsCancelled)
+                return Conflict("Results cannot be recorded for a cancelled event.");
+
+            var resultExists = await _context.Results
                 .AnyAsync(r => r.EnrolmentId == enrolmentId);
 
-            if (existingResult)
-                return Conflict("A result has already been recorded for this enrolment.");
+            if (resultExists)
+                return Conflict("A result already exists for this enrolment.");
 
             var result = new Result
             {
                 EnrolmentId = enrolmentId,
                 FinishTime = request.FinishTime,
                 Position = request.Position,
-                RecordedAt = DateTime.UtcNow
+                RecordedAt = DateTime.Now
             };
 
             _context.Results.Add(result);
@@ -80,29 +78,36 @@ namespace RaceDay.API.Controllers
             return Ok(result);
         }
 
-        [Authorize(Roles = "Participant")]
+        // GET: api/results/mine
         [HttpGet("mine")]
-        public async Task<IActionResult> GetMyResults()
+        [Authorize(Roles = "Participant")]
+        public async Task<ActionResult<IEnumerable<Result>>> GetMyResults()
         {
-            if (!TryGetUserId(out var participantId))
+            if (!int.TryParse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                out var participantId))
                 return Unauthorized();
 
             var results = await _context.Results
-                .Where(r => _context.Enrolments.Any(e =>
-                    e.EnrolmentId == r.EnrolmentId &&
-                    e.ParticipantId == participantId))
+                .Where(r => _context.Enrolments.Any(
+                    e => e.EnrolmentId == r.EnrolmentId &&
+                         e.ParticipantId == participantId))
                 .OrderBy(r => r.Position)
                 .ToListAsync();
 
             return Ok(results);
         }
 
-        [Authorize]
+        // GET: api/results/enrolment/1
         [HttpGet("enrolment/{enrolmentId}")]
-        public async Task<IActionResult> GetEnrolmentResult(int enrolmentId)
+        public async Task<ActionResult<Result>> GetEnrolmentResult(
+            int enrolmentId)
         {
-            if (!TryGetUserId(out var userId))
-                return Unauthorized();
+            var result = await _context.Results
+                .FirstOrDefaultAsync(r => r.EnrolmentId == enrolmentId);
+
+            if (result == null)
+                return NotFound("Result not found.");
 
             var enrolment = await _context.Enrolments
                 .FirstOrDefaultAsync(e => e.EnrolmentId == enrolmentId);
@@ -110,42 +115,45 @@ namespace RaceDay.API.Controllers
             if (enrolment == null)
                 return NotFound("Enrolment not found.");
 
-            var userRole = User.FindFirstValue(ClaimTypes.Role);
+            var isParticipant = User.IsInRole("Participant");
+            var isOrganiser = User.IsInRole("Organiser");
 
-            if (userRole == "Participant")
+            if (!int.TryParse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                out var userId))
+                return Unauthorized();
+
+            if (isParticipant)
             {
                 if (enrolment.ParticipantId != userId)
                     return Forbid();
+
+                return Ok(result);
             }
-            else if (userRole == "Organiser")
+
+            if (isOrganiser)
             {
                 var category = await _context.Categories
-                    .FirstOrDefaultAsync(c => c.CategoryId == enrolment.CategoryId);
+                    .FirstOrDefaultAsync(
+                        c => c.CategoryId == enrolment.CategoryId);
 
                 if (category == null)
-                    return Conflict("The enrolment's category could not be found.");
+                    return Conflict("The category could not be found.");
 
                 var eventItem = await _context.Events
-                    .FirstOrDefaultAsync(e => e.EventId == category.EventId);
+                    .FirstOrDefaultAsync(
+                        e => e.EventId == category.EventId);
 
                 if (eventItem == null)
-                    return Conflict("The category's event could not be found.");
+                    return Conflict("The event could not be found.");
 
                 if (eventItem.OrganiserId != userId)
                     return Forbid();
-            }
-            else
-            {
-                return Forbid();
+
+                return Ok(result);
             }
 
-            var result = await _context.Results
-                .FirstOrDefaultAsync(r => r.EnrolmentId == enrolmentId);
-
-            if (result == null)
-                return NotFound("No result has been recorded for this enrolment.");
-
-            return Ok(result);
+            return Forbid();
         }
     }
 }
