@@ -631,13 +631,105 @@ The RaceDay project is planned around the following technologies:
 
 ---
 
-# 17. Conclusion
+# 17. Completed System Implementation
 
-RaceDay provides a structured foundation for managing South African running, walking, and cycling events.
+## 17.1 ASP.NET Core Web API
 
-The Part 1 database design establishes clear relationships between users, events, categories, routes, enrolments, and results. The use of primary keys, foreign keys, unique constraints, default values, and validation rules helps maintain data integrity.
+RaceDay includes an ASP.NET Core Web API developed using C# and .NET 10.
 
-The API endpoint plan provides the contract that will guide the development of the RESTful API in Part 2. The database and API have therefore been designed with the later MVC web application in Part 3 in mind.
+The API provides functionality for:
 
-The project will be developed incrementally so that the implementation remains consistent with the original system design.
+- User registration and JWT-based authentication.
+- Role-based authorization for Organisers and Participants.
+- Event and category management.
+- Event route management.
+- Participant enrolment.
+- Race result recording and retrieval.
+- User profile management.
+- Event image upload services.
 
+Entity Framework Core is used for database access, with SQL Server providing persistent relational storage.
+
+## 17.2 RaceDay MVC Frontend
+
+The RaceDay MVC application provides a web-based interface for interacting with the system.
+
+The frontend is built using ASP.NET Core MVC and includes controllers, Razor views, static assets and application configuration.
+
+It supports the presentation of RaceDay functionality through a browser-based user interface.
+
+## 17.3 Docker Deployment
+
+The project includes Docker configuration for running its application services.
+
+The deployment architecture consists of:
+
+- RaceDay Web API.
+- RaceDay MVC frontend.
+- Microsoft SQL Server database.
+
+Docker Compose coordinates the services and their configuration.
+
+Database persistence is supported through a Docker volume.
+
+## 17.4 Automated Testing
+
+The solution includes a dedicated `RaceDay.API.Tests` project.
+
+The automated test suite was executed successfully during development, with eight tests passing and zero failures.
+
+The tests can be run using:
+
+```powershell
+dotnet test .\RaceDay.API.Tests\RaceDay.API.Tests.csproj --configuration Release
+```
+
+## 17.5 GitHub Actions CI
+
+The repository includes a GitHub Actions workflow that automates solution restoration, building and testing.
+
+The integration branch passed GitHub Actions checks before merging into the main branch.
+
+The completed integration was merged through Pull Request #1.
+
+## 17.6 Repository Links
+
+**GitHub repository:** https://github.com/Ronald0611115/RaceDay
+
+**Completed pull request:** https://github.com/Ronald0611115/RaceDay/pull/1
+
+**Integration branch:** `submission/docker-integration`
+
+**Main branch:** `main`
+
+## 17.7 Running the Project
+
+The RaceDay solution can be built using:
+
+```powershell
+dotnet build .\RaceDay.API.slnx --configuration Release
+```
+
+To start the containerized application, ensure Docker Desktop is running and the required local environment configuration is present.
+
+Then execute:
+
+```powershell
+docker compose up --build -d
+```
+
+The application requires appropriate database credentials and configuration. Local secrets should not be committed to GitHub.
+
+# 18. Conclusion
+
+RaceDay has progressed from its initial database design and API planning into an integrated event management application.
+
+The completed solution combines a relational SQL Server database, ASP.NET Core Web API, MVC frontend, Docker deployment and automated testing.
+
+The system supports the management of events, categories, routes, participant enrolments and race results, while incorporating authentication, authorization and data integrity constraints.
+
+The implementation follows the original entity relationships and database design decisions established during Part 1.
+
+The project has been version-controlled through GitHub, with eight meaningful integration commits and a successful GitHub Actions workflow.
+
+RaceDay demonstrates the integration of database design, backend development, frontend development, containerization and continuous integration into a full-stack software solution.
