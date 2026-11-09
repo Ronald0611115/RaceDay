@@ -4,35 +4,39 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>74dc46ee-7191-4592-81b7-334a36a86e2c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.30.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
+     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.14">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.0" />
-    <PackageReference Include="Microsoft.OpenApi" Version="2.12.0" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.1" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
   </ItemGroup>
 
-   <PropertyGroup>
-    <DefaultItemExcludes>$(DefaultItemExcludes);RaceDay.API.Tests\**</DefaultItemExcludes>
-  </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="RaceDay.API.Tests\**\*.cs" />
-    <Content Remove="RaceDay.API.Tests\**" />
-    <None Remove="RaceDay.API.Tests\**" />
-    <EmbeddedResource Remove="RaceDay.API.Tests\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- Exclude MVC application files from API compilation -->
+		<Compile Remove="RaceDay.MVC\**\*.cs" />
+		<Content Remove="RaceDay.MVC\**" />
+		<None Remove="RaceDay.MVC\**" />
+		<EmbeddedResource Remove="RaceDay.MVC\**" />
+
+		<!-- Exclude automated test files from API compilation -->
+		<Compile Remove="RaceDay.API.Tests\**\*.cs" />
+		<Content Remove="RaceDay.API.Tests\**" />
+		<None Remove="RaceDay.API.Tests\**" />
+		<EmbeddedResource Remove="RaceDay.API.Tests\**" />
+	</ItemGroup>
+
 
 </Project>

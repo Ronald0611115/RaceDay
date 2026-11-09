@@ -12,3 +12,18 @@ appsettings.Development.json
 
 # Temporary backup of the old GitHub placeholder
 .github-backup
+
+# Docker secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime and development files
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
+# Temporary source backups
+*.bak
