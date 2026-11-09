@@ -1,4 +1,4 @@
-﻿
+
 using System.ComponentModel.DataAnnotations;
 
 namespace RaceDay.API.Models
@@ -8,6 +8,12 @@ namespace RaceDay.API.Models
         [Required]
         [StringLength(100)]
         public string EventName { get; set; } = string.Empty;
+
+        [Required]
+        [RegularExpression("^(Run|Walk|Cycle)$",
+        ErrorMessage = "Event type must be Run, Walk, or Cycle.")]
+        public string EventType { get; set; } = string.Empty;
+
 
         [Required]
         public DateTime? EventDate { get; set; }
