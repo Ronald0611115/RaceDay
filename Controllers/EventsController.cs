@@ -57,6 +57,7 @@ namespace RaceDay.API.Controllers
             var newEvent = new Event
             {
                 EventName = request.EventName,
+                EventType = request.EventType,
                 EventDate = request.EventDate!.Value,
                 Location = request.Location,
                 Description = request.Description,
@@ -99,6 +100,7 @@ namespace RaceDay.API.Controllers
                 return Forbid();
 
             eventItem.EventName = request.EventName;
+            eventItem.EventType = request.EventType;
             eventItem.EventDate = request.EventDate!.Value;
             eventItem.Location = request.Location;
             eventItem.Description = request.Description;
