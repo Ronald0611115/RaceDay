@@ -1,3 +1,4 @@
+﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ namespace RaceDay.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class EnrolmentsController : ControllerBase
     {
         private readonly RaceDayContext _context;
@@ -18,18 +20,14 @@ namespace RaceDay.API.Controllers
             _context = context;
         }
 
-        private bool TryGetUserId(out int userId)
-        {
-            return int.TryParse(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                out userId);
-        }
-
-        [Authorize(Roles = "Participant")]
+        // GET: api/enrolments/mine
         [HttpGet("mine")]
-        public async Task<IActionResult> GetMyEnrolments()
+        [Authorize(Roles = "Participant")]
+        public async Task<ActionResult<IEnumerable<Enrolment>>> GetMyEnrolments()
         {
-            if (!TryGetUserId(out var participantId))
+            if (!int.TryParse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                out var participantId))
                 return Unauthorized();
 
             var enrolments = await _context.Enrolments
@@ -40,18 +38,23 @@ namespace RaceDay.API.Controllers
             return Ok(enrolments);
         }
 
-        [Authorize(Roles = "Participant")]
+        // POST: api/enrolments/category/1
         [HttpPost("category/{categoryId}")]
-        public async Task<IActionResult> EnrolInCategory(int categoryId)
+        [Authorize(Roles = "Participant")]
+        public async Task<ActionResult<Enrolment>> EnrolInCategory(
+            int categoryId)
         {
-            if (!TryGetUserId(out var participantId))
+            if (!int.TryParse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                out var participantId))
                 return Unauthorized();
 
-            var participant = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == participantId);
+            var participantExists = await _context.Users
+                .AnyAsync(u => u.UserId == participantId &&
+                               u.Role == "Participant");
 
-            if (participant == null || participant.Role != "Participant")
-                return Forbid();
+            if (!participantExists)
+                return Unauthorized();
 
             var category = await _context.Categories
                 .FirstOrDefaultAsync(c => c.CategoryId == categoryId);
@@ -66,61 +69,67 @@ namespace RaceDay.API.Controllers
                 return Conflict("The category's event could not be found.");
 
             if (eventItem.IsCancelled)
-                return Conflict("Cannot enrol in a cancelled event.");
+                return Conflict("You cannot enrol in a cancelled event.");
 
-            if (eventItem.EventDate.Date < DateTime.UtcNow.Date)
-                return Conflict("Cannot enrol in an event that has already passed.");
+            if (eventItem.EventDate.Date < DateTime.Today)
+                return Conflict("You cannot enrol in a past event.");
 
-            var existingEnrolment = await _context.Enrolments
-                .AnyAsync(e =>
-                    e.ParticipantId == participantId &&
-                    e.CategoryId == categoryId &&
-                    e.Status != "Cancelled");
+            var alreadyEnrolled = await _context.Enrolments
+                .AnyAsync(e => e.ParticipantId == participantId &&
+                               e.CategoryId == categoryId &&
+                               e.Status != "Cancelled");
 
-            if (existingEnrolment)
+            if (alreadyEnrolled)
                 return Conflict("You are already enrolled in this category.");
 
             var currentEnrolments = await _context.Enrolments
-                .CountAsync(e =>
-                    e.CategoryId == categoryId &&
-                    e.Status != "Cancelled");
+                .CountAsync(e => e.CategoryId == categoryId &&
+                                 e.Status != "Cancelled");
 
             if (currentEnrolments >= category.MaxParticipants)
-                return Conflict("This category has reached its participant limit.");
+                return Conflict("This category is full.");
 
             var enrolment = new Enrolment
             {
                 ParticipantId = participantId,
                 CategoryId = categoryId,
+                EnrolmentDate = DateTime.Now,
                 Status = "Confirmed"
             };
 
             _context.Enrolments.Add(enrolment);
             await _context.SaveChangesAsync();
 
-            return Ok(enrolment);
+            return CreatedAtAction(
+                nameof(GetMyEnrolments),
+                null,
+                enrolment);
         }
 
-        [Authorize(Roles = "Organiser")]
+        // GET: api/enrolments/event/1
         [HttpGet("event/{eventId}")]
-        public async Task<IActionResult> GetEventEnrolments(int eventId)
+        [Authorize(Roles = "Organiser")]
+        public async Task<ActionResult<IEnumerable<Enrolment>>> GetEventEnrolments(
+            int eventId)
         {
-            if (!TryGetUserId(out var organiserId))
-                return Unauthorized();
-
             var eventItem = await _context.Events
                 .FirstOrDefaultAsync(e => e.EventId == eventId);
 
             if (eventItem == null)
                 return NotFound("Event not found.");
 
+            if (!int.TryParse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                out var organiserId))
+                return Unauthorized();
+
             if (eventItem.OrganiserId != organiserId)
                 return Forbid();
 
             var enrolments = await _context.Enrolments
-                .Where(e => _context.Categories.Any(c =>
-                    c.CategoryId == e.CategoryId &&
-                    c.EventId == eventId))
+                .Where(e => _context.Categories.Any(
+                    c => c.CategoryId == e.CategoryId &&
+                         c.EventId == eventId))
                 .OrderBy(e => e.EnrolmentDate)
                 .ToListAsync();
 

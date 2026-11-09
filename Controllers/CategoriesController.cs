@@ -1,3 +1,4 @@
+﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ namespace RaceDay.API.Controllers
             _context = context;
         }
 
+        // GET: api/categories/event/1
         [HttpGet("event/{eventId}")]
         public async Task<ActionResult<IEnumerable<Category>>> GetEventCategories(
             int eventId)
@@ -36,6 +38,7 @@ namespace RaceDay.API.Controllers
             return Ok(categories);
         }
 
+        // GET: api/categories/1
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
@@ -48,6 +51,7 @@ namespace RaceDay.API.Controllers
             return Ok(category);
         }
 
+        // POST: api/categories/event/1
         [Authorize(Roles = "Organiser")]
         [HttpPost("event/{eventId}")]
         public async Task<ActionResult<Category>> CreateCategory(
@@ -68,7 +72,7 @@ namespace RaceDay.API.Controllers
                 return Forbid();
 
             if (eventItem.IsCancelled)
-                return Conflict("Cannot add categories to a cancelled event.");
+                return Conflict("Categories cannot be added to a cancelled event.");
 
             var category = new Category
             {
@@ -87,6 +91,7 @@ namespace RaceDay.API.Controllers
                 category);
         }
 
+        // PUT: api/categories/1
         [Authorize(Roles = "Organiser")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCategory(
@@ -113,7 +118,7 @@ namespace RaceDay.API.Controllers
                 return Forbid();
 
             if (eventItem.IsCancelled)
-                return Conflict("Cannot update categories for a cancelled event.");
+                return Conflict("Categories for a cancelled event cannot be updated.");
 
             category.CategoryName = request.CategoryName.Trim();
             category.EntryFee = request.EntryFee;
@@ -124,6 +129,7 @@ namespace RaceDay.API.Controllers
             return Ok(category);
         }
 
+        // DELETE: api/categories/1
         [Authorize(Roles = "Organiser")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
@@ -156,7 +162,7 @@ namespace RaceDay.API.Controllers
 
             if (hasEnrolments || hasRoute)
                 return Conflict(
-                    "Category cannot be deleted because it has enrolments or a route.");
+                    "This category has enrolments or a route and cannot be deleted.");
 
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();

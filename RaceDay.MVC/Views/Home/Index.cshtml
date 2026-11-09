@@ -1,0 +1,130 @@
+@model List<RaceDay.MVC.Models.EventViewModel>
+
+@{
+    ViewData["Title"] = "RaceDay | Discover Events";
+}
+
+<div class="container py-5">
+
+    <!-- Hero Section -->
+    <div class="bg-dark text-white rounded-4 p-5 mb-5">
+        <span class="badge bg-warning text-dark mb-3">
+            RACEDAY EVENTS
+        </span>
+
+        <h1 class="display-4 fw-bold">
+            Your Next Race Starts Here.
+        </h1>
+
+        <p class="lead mt-3">
+            Discover running, walking and cycling events.
+            Find your challenge and join the RaceDay community.
+        </p>
+
+        <a href="#events" class="btn btn-warning btn-lg mt-3">
+            Explore Events
+        </a>
+    </div>
+
+    <!-- Events Section -->
+    <section id="events">
+
+        <div class="d-flex justify-content-between
+            align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold">Upcoming Events</h2>
+                <p class="text-muted">
+                    Explore your next sporting challenge.
+                </p>
+            </div>
+        </div>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert alert-warning">
+                @ViewBag.ErrorMessage
+            </div>
+        }
+        else if (Model == null || Model.Count == 0)
+        {
+            <div class="alert alert-info">
+                No upcoming events are currently available.
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+
+                @foreach (var raceEvent in Model)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0">
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                raceEvent.BannerImageUrl))
+                            {
+                                <img src="http://localhost:5252/api/events/@raceEvent.EventId/banner"
+                                     class="card-img-top"
+                                     alt="Banner for @raceEvent.EventName"
+                                     style="height:220px;object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <div class="bg-secondary text-white
+                                    d-flex align-items-center
+                                    justify-content-center"
+                                     style="height:220px;">
+                                    <h4>RaceDay</h4>
+                                </div>
+                            }
+
+                            <div class="card-body">
+                                <span class="badge bg-primary mb-2">
+                                    @raceEvent.EventType
+                                </span>
+
+                                <h5 class="card-title fw-bold">
+                                    @raceEvent.EventName
+                                </h5>
+
+
+<div class="mb-2">
+    <span class="fw-semibold">Event Date:</span>
+    <span class="text-muted">
+        @raceEvent.EventDate.ToString("dd MMM yyyy")
+    </span>
+</div>
+
+<div class="mb-3">
+    <span class="fw-semibold">Location:</span>
+    <span class="text-muted">
+        @raceEvent.Location
+    </span>
+</div>
+
+
+                                <p class="card-text">
+                                    @raceEvent.Description
+                                </p>
+                            </div>
+
+                            <div class="card-footer bg-white border-0 pb-3">
+
+                                <a asp-controller="Home"
+                                   asp-action="Details"
+                                   asp-route-id="@raceEvent.EventId"
+                                   class="btn btn-outline-dark w-100">
+                                    View Details
+                                </a>
+
+                            </div>
+
+                        </div>
+                    </div>
+                }
+
+            </div>
+        }
+
+    </section>
+</div>

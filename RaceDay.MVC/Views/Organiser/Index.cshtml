@@ -1,0 +1,173 @@
+
+@model List<RaceDay.MVC.Models.EventViewModel>
+
+@{
+    ViewData["Title"] = "Organiser Dashboard";
+}
+
+<div class="container mt-5 mb-5">
+
+    <h1 class="mb-3">Organiser Dashboard</h1>
+
+    <p class="text-muted">
+        Manage your RaceDay events and participants.
+    </p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+
+<a asp-controller="Organiser"
+   asp-action="CreateEvent"
+   class="btn btn-success mb-4">
+    Create New Event
+</a>
+
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Total Events</h6>
+                    <h2>@Model.Count</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3">My Events</h3>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No events are currently available.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Event</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var raceEvent in Model)
+                    {
+                        <tr>
+                            <td>@raceEvent.EventName</td>
+                            <td>@raceEvent.EventType</td>
+                            <td>
+                                @raceEvent.EventDate.ToString("dd MMM yyyy")
+                            </td>
+                            <td>@raceEvent.Location</td>
+                            <td>
+                                <a asp-controller="Home"
+                                   asp-action="Details"
+                                   asp-route-id="@raceEvent.EventId"
+                                   class="btn btn-outline-primary btn-sm">
+                                    View Event
+                                </a>
+
+
+<a asp-controller="Organiser"
+   asp-action="EditEvent"
+   asp-route-id="@raceEvent.EventId"
+   class="btn btn-outline-warning btn-sm">
+    Edit
+</a>
+
+
+<a asp-controller="Organiser"
+   asp-action="CreateCategory"
+   asp-route-eventId="@raceEvent.EventId"
+   class="btn btn-outline-success btn-sm">
+    Add Category
+</a>
+
+
+<a asp-controller="Organiser"
+   asp-action="EventEnrolments"
+   asp-route-eventId="@raceEvent.EventId"
+   class="btn btn-outline-info btn-sm">
+    View Enrolments
+</a>
+
+
+<form asp-controller="Organiser"
+      asp-action="CancelEvent"
+      method="post"
+      class="d-inline">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           name="id"
+           value="@raceEvent.EventId" />
+
+    <button type="submit"
+            class="btn btn-outline-danger btn-sm"
+            onclick="return confirm('Cancel this event?');">
+        Cancel Event
+    </button>
+</form>
+
+
+<form asp-controller="Organiser"
+      asp-action="UploadBanner"
+      method="post"
+      enctype="multipart/form-data"
+      class="mt-2">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           name="eventId"
+           value="@raceEvent.EventId" />
+
+    <label class="form-label small"
+           for="banner-@raceEvent.EventId">
+        Event Banner
+    </label>
+
+    <input type="file"
+           id="banner-@raceEvent.EventId"
+           name="file"
+           accept=".jpg,.jpeg,.png,.webp"
+           class="form-control form-control-sm mb-2"
+           required />
+
+    <button type="submit"
+            class="btn btn-outline-primary btn-sm">
+        Upload Banner
+    </button>
+</form>
+
+
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,79 @@
+﻿
+@model RaceDay.MVC.Models.CategoryFormViewModel
+
+@{
+    ViewData["Title"] = "Create Category";
+}
+
+<div class="container mt-5 mb-5">
+    <h1>Create Event Category</h1>
+
+    <p class="text-muted">
+        Add a registration category to your RaceDay event.
+    </p>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <form asp-controller="Organiser"
+                  asp-action="CreateCategory"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="EventId" />
+
+                <div asp-validation-summary="All"
+                     class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="CategoryName"
+                           class="form-label"></label>
+                    <input asp-for="CategoryName"
+                           class="form-control"
+                           placeholder="e.g. 5KM Run"
+                           required />
+                    <span asp-validation-for="CategoryName"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EntryFee"
+                           class="form-label"></label>
+                    <input asp-for="EntryFee"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           class="form-control" />
+                    <span asp-validation-for="EntryFee"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MaxParticipants"
+                           class="form-label"></label>
+                    <input asp-for="MaxParticipants"
+                           type="number"
+                           min="1"
+                           class="form-control" />
+                    <span asp-validation-for="MaxParticipants"
+                          class="text-danger"></span>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-success">
+                    Create Category
+                </button>
+
+                <a asp-controller="Organiser"
+                   asp-action="Index"
+                   class="btn btn-secondary ms-2">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
