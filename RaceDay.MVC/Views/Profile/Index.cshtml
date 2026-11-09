@@ -1,0 +1,121 @@
+﻿
+@model RaceDay.MVC.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container mt-5 mb-5">
+    <h1 class="mb-4">My Profile</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ProfilePictureUrl))
+                    {
+                        <img src="@Url.Action("Picture", "Profile")"
+                             alt="Profile picture"
+                             class="rounded-circle mb-3"
+                             style="width:150px;height:150px;object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div class="rounded-circle bg-secondary text-white
+                                    d-flex align-items-center justify-content-center
+                                    mx-auto mb-3"
+                             style="width:150px;height:150px;">
+                            No Photo
+                        </div>
+                    }
+
+                    <h5>@Model.FirstName @Model.LastName</h5>
+                    <p class="text-muted">@Model.Role</p>
+
+                    <form asp-controller="Profile"
+                          asp-action="UploadPicture"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="file"
+                               name="file"
+                               accept=".jpg,.jpeg,.png,.webp"
+                               class="form-control mb-3"
+                               required />
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+                            Upload Picture
+                        </button>
+                    </form>
+
+                    <small class="text-muted">
+                        JPG, PNG or WebP. Maximum 5 MB.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Personal Information</h5>
+                </div>
+
+                <div class="card-body">
+                    <form asp-controller="Profile"
+                          asp-action="Update"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label asp-for="FirstName"
+                                   class="form-label"></label>
+                            <input asp-for="FirstName"
+                                   class="form-control"
+                                   required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="LastName"
+                                   class="form-label"></label>
+                            <input asp-for="LastName"
+                                   class="form-control"
+                                   required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input value="@Model.Email"
+                                   class="form-control"
+                                   readonly />
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-success">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
